@@ -17,16 +17,34 @@ the status codes.
 ## Running it
 
 ```bash
-composer install
-symfony server:start -d
+docker compose up -d
 ```
 
-Then open the URL the server prints. No database is needed: users and documents are in memory.
+Then open <http://localhost:8000>. That is the whole setup — the image builds the application and
+serves it, so nothing needs to be installed on the host. Use `APP_PORT=8100 docker compose up -d`
+if port 8000 is already taken.
+
+**There is no database to initialise, and no database service in `compose.yaml`.** The accounts and
+the documents live in memory. That is deliberate: what is being demonstrated is authorization, and
+a schema to migrate before the first page loads would only stand between you and it.
 
 Sign in with `user` / `user`, `manager` / `manager` or `admin` / `admin` — the password is the
 username. What each account *holds* is narrower than what it *reaches*: `security.role_hierarchy`
 is declared once and the library reads it, so an admin satisfies a `ROLE_MANAGER` rule without
 holding that role.
+
+<details>
+<summary>Without Docker</summary>
+
+```bash
+composer install
+symfony server:start -d
+```
+
+Requires PHP 8.4 or later and the [Symfony CLI](https://symfony.com/download). Same application,
+same absence of a database.
+
+</details>
 
 ## How it is laid out
 
@@ -84,10 +102,12 @@ an exit status belongs to the scripts around a command, not to the rule that ref
 Add `--profile -v` to any of them and follow the printed token to read the **Access Control**
 profiler panel.
 
+Running under Docker, prefix them: `docker compose exec app php bin/console app:audit:run --as=manager`.
+
 ## Tests
 
 ```bash
-vendor/bin/phpunit
+vendor/bin/phpunit                          # or: docker compose exec app vendor/bin/phpunit
 ```
 
 The suite is part of the demo. Beyond the usual web tests it exercises the testing tools both
