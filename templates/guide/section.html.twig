@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ section.label }}{% endblock %}
+
+{% block body %}
+    <h1>{{ section.label }}</h1>
+    <p>{{ section.lead }}</p>
+
+    {% for entry in section.entries %}
+        <div class="card">
+            <h3><a href="{{ path(entry.route, entry.params|default({})) }}">{{ entry.title }}</a></h3>
+            <p class="muted">{{ entry.what|raw }}</p>
+            <p class="needs muted">
+                <code>{{ path(entry.route, entry.params|default({})) }}</code> · needs {{ entry.needs }}
+            </p>
+        </div>
+    {% endfor %}
+
+    {% for note in section.notes|default([]) %}
+        <h2>{{ note.title }}</h2>
+        <p class="muted">{{ note.body|raw }}</p>
+    {% endfor %}
+{% endblock %}

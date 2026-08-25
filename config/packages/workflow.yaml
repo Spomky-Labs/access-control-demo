@@ -1,0 +1,56 @@
+# A publication workflow whose transitions are guarded by the AccessControl component.
+#
+# `guard:` is an expression, and evaluating it used to take Security: Workflow types its
+# GuardListener on four of its services. This application has SecurityBundle, so that listener is
+# deliberately left in place — its guards already reach this component, the bridge having pointed
+# `security.access.decision_manager` at it. An application with no Security gets a listener of the
+# component instead, swapped in by WorkflowGuardPass (see tests/Standalone/WorkflowKernel.php).
+#
+# What matters here is that the guards below name the very attributes the controllers name, and are
+# answered by the very same voters: DocumentVoter, ComplianceVoter and the RoleVoter.
+framework:
+    workflows:
+        document_publication:
+            type: state_machine
+            marking_store:
+                type: method
+                property: marking
+            supports:
+                - App\Model\Document
+            initial_marking: draft
+            places:
+                - draft
+                - in_review
+                - published
+                - archived
+            transitions:
+                # EDIT is the owner's alone — an administrator looking at someone else's draft
+                # cannot submit it, which the VIEW attribute would have allowed.
+                submit:
+                    from: draft
+                    to: in_review
+                    guard: "is_granted('EDIT', subject)"
+
+                # Two voters answer PUBLISH: DocumentVoter grants it to the owner and to admins,
+                # ComplianceVoter vetoes locked documents. A guard cannot name a strategy, so the
+                # default applies — permit_overrides, where the grant beats the veto. The strict
+                # reading of the same request is at /documents/{id}/publish-strict.
+                publish:
+                    from: in_review
+                    to: published
+                    guard: "is_granted('PUBLISH', subject)"
+
+                # A plain role, and the four-eyes rule on top: whoever wrote it may not be the one
+                # who takes it back. `subject` and `user` are the variables an access rule sees.
+                # The call is written out because ExpressionLanguage reads a property where
+                # PropertyAccess would look for a getter, and `user.userIdentifier` is silently null.
+                retract:
+                    from: published
+                    to: draft
+                    guard: "is_granted('ROLE_MANAGER') and subject.owner != user.getUserIdentifier()"
+
+                # Reachable from anywhere, administrators only.
+                archive:
+                    from: [draft, in_review, published]
+                    to: archived
+                    guard: "is_granted('ROLE_ADMIN')"

@@ -50,6 +50,9 @@
             "bin/phpunit"
         ]
     },
+    "spomky-labs/access-control-bundle": {
+        "version": "1.0.x-dev"
+    },
     "symfony/asset-mapper": {
         "version": "8.1",
         "recipe": {
@@ -317,6 +320,18 @@
         },
         "files": [
             "config/packages/messenger.yaml"
+        ]
+    },
+    "symfony/workflow": {
+        "version": "8.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "3.3",
+            "ref": "3b2f8ca32a07fcb00f899649053943fa3d8bbfb6"
+        },
+        "files": [
+            "config/packages/workflow.yaml"
         ]
     },
     "twig/extra-bundle": {

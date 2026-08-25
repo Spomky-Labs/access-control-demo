@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin{% endblock %}
+
+{% block body %}
+    <h1>Admin area</h1>
+    <p>
+        Guarded by <code>#[AccessPolicy('ROLE_ADMIN', message: 'Administrators only.')]</code>
+        at the class level. A signed-in <code>user</code> or <code>manager</code> gets a
+        <code>403</code> carrying that message.
+    </p>
+    <p><a href="{{ path('app_admin_reports') }}">Open the reports page →</a></p>
+{% endblock %}

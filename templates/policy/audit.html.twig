@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Audit trail{% endblock %}
+
+{% block body %}
+    <h1>What was decided while this page was built</h1>
+    <p>
+        Everything below was recorded by <code>App\Security\AccessAuditSubscriber</code>, listening
+        to the three events the component dispatches. The bundle keeps a logger of its own in debug
+        mode — the profiler panel and the test assertions read that one — but it is not there in
+        production, and an audit trail is.
+    </p>
+    <p class="muted">
+        {{ queries }} question(s) reached an entry point, {{ decisions|length }} decision(s) were
+        settled, {{ refusals }} of them refusals.
+    </p>
+
+    <h2>Decisions</h2>
+    <table>
+        <thead><tr><th>Attribute</th><th>Verdict</th><th>Strategy</th><th>Reason</th></tr></thead>
+        <tbody>
+            {% for decision in decisions %}
+                <tr>
+                    <td>
+                        {% if decision.nested %}<span class="muted">↳ </span>{% endif %}
+                        <code>{{ decision.attribute }}</code>
+                    </td>
+                    <td><code>{{ decision.decision }}</code></td>
+                    <td class="muted">{{ decision.strategy ?: '—' }}</td>
+                    <td class="muted">{{ decision.reason ?: '—' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="muted">
+        The indented rows are decisions a voter asked for while answering another one —
+        <code>is_granted()</code> inside an expression is the usual case. The event carries that
+        parentage, which is what lets the profiler draw a tree rather than a flat list.
+    </p>
+
+    <h2>Votes that said something</h2>
+    <table>
+        <thead><tr><th>Voter</th><th>Said</th><th>Reason</th></tr></thead>
+        <tbody>
+            {% for vote in votes %}
+                <tr>
+                    <td><code>{{ vote.voter }}</code></td>
+                    <td><code>{{ vote.decision }}</code></td>
+                    <td class="muted">{{ vote.reason ?: '—' }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="3" class="muted">Every voter abstained.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="muted">
+        Abstentions are left out on purpose: most voters abstain on most questions, and keeping them
+        would bury the trail.
+    </p>
+{% endblock %}

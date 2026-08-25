@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Everybody abstained{% endblock %}
+
+{% block body %}
+    <h1>When everybody abstains</h1>
+    <p>
+        No voter in this application claims <code>{{ unclaimed }}</code>, so every one of them
+        abstains. A manager never hands an abstention back — it settles it — and what it settles on
+        is the one thing that differs between these two rows.
+    </p>
+    <table>
+        <thead><tr><th><code>allowIfAllAbstain</code></th><th>Verdict</th><th>Reason</th></tr></thead>
+        <tbody>
+            <tr>
+                <td><code>true</code></td>
+                <td>{{ lenient.isGranted ? '✅' : '⛔' }} <code>{{ lenient.decision.value }}</code></td>
+                <td class="muted">{{ lenient.reason ?: '—' }}</td>
+            </tr>
+            <tr>
+                <td><code>false</code></td>
+                <td>{{ strict.isGranted ? '✅' : '⛔' }} <code>{{ strict.decision.value }}</code></td>
+                <td class="muted">{{ strict.reason ?: '—' }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="muted">
+        The policy that let this page render named <code>true</code> for its own request. The
+        application-wide default belongs to the manager, and is declared under
+        <code>security.access_decision_manager.allow_if_all_abstain</code> where there is a
+        Security, or <code>access_control.allow_if_all_abstain</code> where there is not — naming it
+        on both raises rather than one winning.
+    </p>
+{% endblock %}

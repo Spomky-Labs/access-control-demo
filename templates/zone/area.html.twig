@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <p class="muted"><a href="{{ path('app_zone') }}">← Zone</a></p>
+    <h1>{{ title }}</h1>
+    <p>{{ lead }}</p>
+    <p>
+        Guarded by the rule <code>{{ rule }}</code>, matched on <code>kernel.request</code>.
+        You are seeing this page because that rule granted access before the controller ran.
+    </p>
+    {% if app.user %}
+        <p class="muted">Signed in as <strong>{{ app.user.userIdentifier }}</strong>.</p>
+    {% else %}
+        <p class="muted">Reached without signing in.</p>
+    {% endif %}
+{% endblock %}

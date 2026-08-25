@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ document.title }} — workflow{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('app_document_show', {id: document.id}) }}">← {{ document.title }}</a></p>
+    <h1>Publication workflow</h1>
+    <p class="muted">
+        <code>{{ document.title }}</code>, owned by <code>{{ document.owner }}</code>{% if document.locked %},
+        <strong>locked by compliance</strong>{% endif %} — currently in <code>{{ marking }}</code>.
+    </p>
+
+    <p>
+        Each transition below carries a <code>guard:</code> expression, and every one of them is
+        answered by the voters this app already had: <code>DocumentVoter</code> on
+        <code>EDIT</code> and <code>PUBLISH</code>, <code>ComplianceVoter</code> vetoing locked
+        documents, the <code>RoleVoter</code> on the rest. Nothing in
+        <code>config/packages/workflow.yaml</code> mentions this component — the guards reach it
+        because registering the bundle pointed Security's decision manager at it.
+    </p>
+
+    <table>
+        <thead>
+            <tr><th>Transition</th><th>From → to</th><th>Guard</th><th></th></tr>
+        </thead>
+        <tbody>
+            {% for transition in transitions %}
+                <tr>
+                    <td><code>{{ transition.name }}</code></td>
+                    <td class="muted">{{ transition.from }} → {{ transition.to }}</td>
+                    <td>
+                        {% if transition.enabled %}
+                            ✅ allowed
+                        {% else %}
+                            ⛔ blocked
+                            <ul class="muted">
+                                {% for reason in transition.blockers %}<li>{{ reason }}</li>{% endfor %}
+                            </ul>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if transition.enabled %}
+                            <form method="post" action="{{ path('app_document_transition', {id: document.id, transition: transition.name}) }}">
+                                <button type="submit">Apply</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="muted">
+        A blocked transition has two unrelated reasons to be blocked, and the list says which: the
+        document is not in the right place, or the guard refused. Only the second one is an access
+        decision.
+    </p>
+    <p class="muted">
+        <code>publish</code> is worth trying on a locked document. Two voters answer
+        <code>PUBLISH</code>, and a guard cannot name a strategy, so the default applies —
+        <code>permit_overrides</code>, where the owner's grant beats the compliance veto. The same
+        request read the strict way is at
+        <a href="{{ path('app_document_publish_strict', {id: document.id}) }}">publish-strict</a>.
+    </p>
+    <p class="muted">
+        Markings are not persisted: the store is rebuilt per request, so applying a transition shows
+        what it would do and the page returns to where it started.
+    </p>
+{% endblock %}

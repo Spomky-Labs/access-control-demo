@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Access preview{% endblock %}
+
+{% block body %}
+    <h1>Access preview — decide for other accounts</h1>
+    <p>
+        Every cell below is <code>is_granted_for_user(account, attribute)</code>, evaluated right
+        here in the template — not for you, the logged-in admin, but for each listed account. The
+        AccessControl component answers it through its own voters (the role hierarchy included), so
+        the <strong>manager</strong> row holds <code>ROLE_USER</code> and the <strong>admin</strong>
+        row holds everything, without anyone logging in.
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Account</th>
+                {% for attribute in attributes %}
+                    <th><code>{{ attribute }}</code></th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+                <tr>
+                    <td>
+                        {% if account.user %}<strong>{{ account.label }}</strong>
+                        {% else %}<span class="muted">{{ account.label }}</span>{% endif %}
+                    </td>
+                    {% for attribute in attributes %}
+                        <td>{{ is_granted_for_user(account.user, attribute) ? '✓' : '✗' }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="muted">
+        The <code>anonymous</code> row shows why <code>PUBLIC_ACCESS</code> is not a role: it is
+        granted to a requester that has none. Every other column there is denied.
+    </p>
+
+    <h2>And why — <code>{{ explained }}</code>, account by account</h2>
+    <p>
+        A ✓ says what was decided and never why. <code>access_control_decision_for_user()</code>
+        hands back the whole decision instead of its verdict, so the reason the voters wrote
+        reaches the page — the same thing <code>access_decision()</code> does for the current
+        requester, asked here of somebody else.
+    </p>
+    <table>
+        <thead><tr><th>Account</th><th>Verdict</th><th>Reason</th></tr></thead>
+        <tbody>
+            {% for account in accounts %}
+                {% set decision = access_control_decision_for_user(account.user, explained) %}
+                <tr>
+                    <td>{{ account.label }}</td>
+                    <td><code>{{ decision.decision.value }}</code></td>
+                    <td class="muted">{{ decision.reason ?: '—' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="muted">
+        The <code>manager</code> and <code>admin</code> rows are granted for different reasons —
+        one holds the role, the other reaches it through the hierarchy — and the reason says so.
+    </p>
+{% endblock %}

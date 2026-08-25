@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit — {{ document.title }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('app_document_show', {id: document.id}) }}">← Back to document</a></p>
+    <h1>Edit: {{ document.title }}</h1>
+    <p class="muted">Owned by <code>{{ document.owner }}</code></p>
+    <p>
+        You are seeing this page because the <code>EDIT</code> policy granted access —
+        which means you are the owner. (No real editing here; this is an authorization demo.)
+    </p>
+{% endblock %}

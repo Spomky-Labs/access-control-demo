@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Documents{% endblock %}
+
+{% block body %}
+    <h1>Documents</h1>
+    <p>
+        The list is behind <code>ROLE_USER</code>. Opening a document runs the
+        <code>DocumentVoter</code>: you may <strong>view</strong> your own documents
+        (admins may view any) and <strong>edit</strong> only your own.
+    </p>
+    <table>
+        <thead><tr><th>#</th><th>Title</th><th>Owner</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for document in documents %}
+                <tr>
+                    <td>{{ document.id }}</td>
+                    <td>{{ document.title }}{% if document.locked %} <span class="badge">locked</span>{% endif %}</td>
+                    <td><code>{{ document.owner }}</code></td>
+                    <td>
+                        <a href="{{ path('app_document_show', {id: document.id}) }}">view</a> ·
+                        <a href="{{ path('app_document_edit', {id: document.id}) }}">edit</a> ·
+                        <a href="{{ path('app_document_manage', {id: document.id}) }}">manage</a> ·
+                        <a href="{{ path('app_document_publish', {id: document.id}) }}">publish</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="muted">
+        Tip: as <code>user</code>, viewing/editing document #2 or #3 is denied; as
+        <code>admin</code>, viewing all works but editing #1 or #2 is denied.
+    </p>
+{% endblock %}

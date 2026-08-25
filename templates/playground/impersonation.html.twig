@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Impersonation{% endblock %}
+
+{% block body %}
+    <h1>You are impersonating</h1>
+    <p>
+        This page is guarded by <code>#[AccessPolicy('IS_IMPERSONATOR')]</code>, so it is only
+        reachable while a <code>SwitchUserToken</code> is in place.
+    </p>
+    <ul>
+        <li>Impersonated user: <strong>{{ impersonated }}</strong></li>
+        <li>Real user behind the switch: <strong>{{ impersonator ?? 'n/a' }}</strong></li>
+    </ul>
+    <p><a href="{{ path('app_playground') }}?_switch_user=_exit">Stop impersonating</a></p>
+{% endblock %}

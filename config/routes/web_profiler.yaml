@@ -6,3 +6,11 @@ when@dev:
     web_profiler_profiler:
         resource: '@WebProfilerBundle/Resources/config/routing/profiler.php'
         prefix: /_profiler
+
+# Mounted in the test environment too, where WebProfilerBundle is registered anyway. The
+# AccessControl panel is a deliverable of this application like any page, and a panel nothing ever
+# renders is a panel nobody notices breaking.
+when@test:
+    web_profiler_profiler:
+        resource: '@WebProfilerBundle/Resources/config/routing/profiler.php'
+        prefix: /_profiler

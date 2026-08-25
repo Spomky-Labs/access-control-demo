@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AccessControl demo — Home{% endblock %}
+
+{% block body %}
+    <h1>AccessControl in a web app</h1>
+    <p>
+        A working application wired to <code>spomky-labs/access-control-lib</code> and
+        <code>spomky-labs/access-control-bundle</code>, built to exercise them rather than to be
+        pretty. Every page below is a question put to the library in a different way, and none of
+        them is a mock.
+    </p>
+
+    <h2>Demo accounts</h2>
+    <p class="muted">Passwords are the same as the usernames.</p>
+    <table>
+        <thead><tr><th>Username</th><th>Password</th><th>Roles</th></tr></thead>
+        <tbody>
+            <tr><td><code>user</code></td><td><code>user</code></td><td>ROLE_USER</td></tr>
+            <tr><td><code>manager</code></td><td><code>manager</code></td><td>ROLE_MANAGER, ROLE_USER</td></tr>
+            <tr><td><code>admin</code></td><td><code>admin</code></td><td>ROLE_ADMIN, ROLE_MANAGER, ROLE_USER, ROLE_ALLOWED_TO_SWITCH</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">
+        The roles above are the ones each account <em>holds</em>. What it <em>reaches</em> is wider:
+        <code>security.role_hierarchy</code> is declared once and the component reads it, so an
+        admin satisfies a <code>ROLE_MANAGER</code> rule without holding it.
+    </p>
+
+    <h2>The four questions</h2>
+    <p>
+        The demo is laid out along the order the questions come up. Each section below is a page of
+        its own, and the menu follows the same four.
+    </p>
+
+    {# Generated from App\Service\Catalogue, like the menu and the section pages: one map, read
+       three times, so a page cannot be listed in one place and missing from another. #}
+    {% for id, section in catalogue_sections() %}
+        <div class="card">
+            <h3><a href="{{ path(section.route) }}">{{ loop.index }}. {{ section.label }}</a></h3>
+            <p class="muted">{{ section.lead }}</p>
+            <p class="needs">
+                {% for entry in section.entries %}
+                    <a href="{{ path(entry.route, entry.params|default({})) }}">{{ entry.title }}</a>{{ loop.last ? '' : ' · ' }}
+                {% endfor %}
+            </p>
+        </div>
+    {% endfor %}
+
+    <h2>Off the web</h2>
+    <p>
+        Two entry points have no page here, and both put the same questions to the same voters.
+    </p>
+    <table>
+        <thead><tr><th>Command</th><th>What it shows</th></tr></thead>
+        <tbody>
+            <tr>
+                <td><code>app:report:generate --as=admin</code></td>
+                <td>A command guarded by <code>#[AccessPolicy]</code>. <code>--as</code> stands in a service identity, there being no logged-in user on a console.</td>
+            </tr>
+            <tr>
+                <td><code>app:document:purge --force --as=admin</code></td>
+                <td><code>#[When]</code>: the policy only applies when <code>--force</code> is given, so a dry run is open to anyone.</td>
+            </tr>
+            <tr>
+                <td><code>app:audit:run --as=manager</code></td>
+                <td><code>#[AtLeastOneOf]</code>, and one of the two commands answering <code>77</code> instead of <code>113</code> when refused.</td>
+            </tr>
+            <tr>
+                <td><code>app:access:check VIEW 2 --as=user</code></td>
+                <td>No policy at all: it asks the manager directly and prints the verdict, the reason and every vote.</td>
+            </tr>
+            <tr>
+                <td><code>app:entry-point:check</code></td>
+                <td>The access environment on the console — the same attribute a web page uses, granted for a different reason and with no requester at all.</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="muted">
+        Add <code>--profile -v</code> to any of them to record a profile; the console prints a
+        <code>/_profiler/&lt;token&gt;</code> link whose <strong>Access Control</strong> panel reads
+        exactly like it does for an HTTP request.
+    </p>
+
+    <h2>Without Security at all</h2>
+    <p class="muted">
+        The other half of the demo has no pages, because it has no firewall. The kernels under
+        <code>tests/Standalone/</code> register <code>AccessControlBundle</code> and no
+        <code>SecurityBundle</code>, and show the role hierarchy on the component's own key,
+        declarative rules, <code>#[AccessPolicy]</code>, Security's <code>#[IsGranted]</code>,
+        the <code>AbstractController</code> helpers and a guarded workflow — all deciding with no
+        token, no user provider and no firewall in sight.
+    </p>
+{% endblock %}

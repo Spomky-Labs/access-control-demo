@@ -783,8 +783,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *                 MultipleActiveResultSets?: bool|Param, // Configuring MultipleActiveResultSets for the pdo_sqlsrv driver
  *                 instancename?: scalar|Param|null, // Optional parameter, complete whether to add the INSTANCE_NAME parameter in the connection. It is generally used to connect to an Oracle RAC server to select the name of a particular instance.
  *                 connectstring?: scalar|Param|null, // Complete Easy Connect connection descriptor, see https://docs.oracle.com/database/121/NETAG/naming.htm.When using this option, you will still need to provide the user and password parameters, but the other parameters will no longer be used. Note that when using this parameter, the getHost and getPort methods from Doctrine\DBAL\Connection will no longer function as expected.
+ *                 ...<string, mixed>
  *             }>,
+ *             ...<string, mixed>
  *         }>,
+ *         ...<string, mixed>
  *     },
  *     orm?: array{
  *         default_entity_manager?: scalar|Param|null,
@@ -819,6 +822,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *                         }>,
  *                     }>,
  *                 }>,
+ *                 ...<string, mixed>
  *             },
  *             connection?: scalar|Param|null,
  *             class_metadata_factory_name?: scalar|Param|null, // Default: "Doctrine\\ORM\\Mapping\\ClassMetadataFactory"
@@ -879,10 +883,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *                 class?: scalar|Param|null,
  *                 enabled?: bool|Param, // Default: false
  *                 parameters?: array<string, mixed>,
+ *                 ...<string, mixed>
  *             }>,
  *             identity_generation_preferences?: array<string, scalar|Param|null>,
  *         }>,
  *         resolve_target_entities?: array<string, scalar|Param|null>,
+ *         ...<string, mixed>
  *     },
  * }
  * @psalm-type DoctrineMigrationsConfig = array{
@@ -922,6 +928,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         id?: scalar|Param|null,
  *         type?: scalar|Param|null,
  *         value?: mixed,
+ *         ...<string, mixed>
  *     }>,
  *     autoescape_service?: scalar|Param|null, // Default: null
  *     autoescape_service_method?: scalar|Param|null, // Default: null
@@ -1326,6 +1333,26 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  *     role_hierarchy?: array<string, Param|string|list<scalar|Param|null>>,
  * }
+ * @psalm-type AccessControlConfig = array{
+ *     default_strategy?: "permit_overrides"|"deny_overrides"|"majority"|"first_applicable"|Param, // The combining algorithm applied when a request names none. The XACML names of the Security strategies are, in order, affirmative, unanimous, consensus and priority. // Default: "permit_overrides"
+ *     allow_if_all_abstain?: bool|Param, // What to answer when no voter had anything to say. An application that has Security declares it under security.access_decision_manager instead. // Default: false
+ *     allow_if_equal_granted_denied?: bool|Param, // Whether the majority strategy grants access when both sides weigh the same. // Default: true
+ *     role_prefix?: scalar|Param|null, // The prefix an attribute must carry to be read as a role. // Default: "ROLE_"
+ *     role_hierarchy?: array<string, Param|string|list<scalar|Param|null>>,
+ *     rules?: list<array{ // Default: []
+ *         request_matcher?: scalar|Param|null, // Default: null
+ *         requires_channel?: scalar|Param|null, // Default: null
+ *         path?: scalar|Param|null, // Use the urldecoded format. // Default: null
+ *         host?: scalar|Param|null, // Default: null
+ *         port?: int|Param, // Default: null
+ *         ips?: Param|string|list<scalar|Param|null>,
+ *         attributes?: array<string, scalar|Param|null>,
+ *         route?: scalar|Param|null, // Default: null
+ *         methods?: Param|string|list<scalar|Param|null>,
+ *         allow_if?: scalar|Param|null, // Default: null
+ *         roles?: Param|string|list<scalar|Param|null>,
+ *     }>,
+ * }
  * @psalm-type MonologConfig = array{
  *     use_microseconds?: scalar|Param|null, // Default: true
  *     channels?: list<scalar|Param|null>,
@@ -1343,6 +1370,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             enabled?: bool|Param|null, // Default: null
  *             date_format?: scalar|Param|null,
  *             remove_used_context_fields?: bool|Param,
+ *             ...<string, mixed>
  *         },
  *         path?: scalar|Param|null, // Default: "%kernel.logs_dir%/%kernel.environment%.log"
  *         file_permission?: scalar|Param|null, // Default: null
@@ -1466,6 +1494,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         channels?: Param|string|array{
  *             type?: scalar|Param|null,
  *             elements?: list<scalar|Param|null>,
+ *             ...<string, mixed>
  *         },
  *     }>,
  * }
@@ -1486,6 +1515,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     turbo?: TurboConfig,
  *     twig_extra?: TwigExtraConfig,
  *     security?: SecurityConfig,
+ *     access_control?: AccessControlConfig,
  *     monolog?: MonologConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
@@ -1501,6 +1531,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         turbo?: TurboConfig,
  *         twig_extra?: TwigExtraConfig,
  *         security?: SecurityConfig,
+ *         access_control?: AccessControlConfig,
  *         monolog?: MonologConfig,
  *         maker?: MakerConfig,
  *     },
@@ -1516,6 +1547,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         turbo?: TurboConfig,
  *         twig_extra?: TwigExtraConfig,
  *         security?: SecurityConfig,
+ *         access_control?: AccessControlConfig,
  *         monolog?: MonologConfig,
  *     },
  *     "when@test"?: array{
@@ -1531,6 +1563,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         turbo?: TurboConfig,
  *         twig_extra?: TwigExtraConfig,
  *         security?: SecurityConfig,
+ *         access_control?: AccessControlConfig,
  *         monolog?: MonologConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias

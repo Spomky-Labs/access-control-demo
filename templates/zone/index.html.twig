@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Zone — declarative rules{% endblock %}
+
+{% block body %}
+    <h1>Zone — declarative access rules</h1>
+    <p>
+        This whole area is guarded from the outside by
+        <code>access_control.rules</code>. <code>ZoneController</code> carries
+        <strong>no <code>#[AccessPolicy]</code> attribute at all</strong> — access is
+        decided on <code>kernel.request</code>, before any controller runs. It is the
+        config-driven counterpart to the attribute-based pages elsewhere in this demo, and
+        the options are exactly those of <code>security.access_control</code>.
+    </p>
+
+    <table>
+        <thead>
+            <tr><th>Page</th><th>Rule</th><th>Grants</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><a href="{{ path('app_zone_members') }}">/zone/members</a></td>
+                <td><code>roles: [ROLE_USER]</code></td>
+                <td>any signed-in account</td>
+            </tr>
+            <tr>
+                <td><a href="{{ path('app_zone_staff') }}">/zone/staff</a></td>
+                <td><code>roles: [ROLE_MANAGER]</code></td>
+                <td>manager, admin (via hierarchy)</td>
+            </tr>
+            <tr>
+                <td><a href="{{ path('app_zone_admin') }}">/zone/admin</a></td>
+                <td><code>roles: [ROLE_ADMIN]</code></td>
+                <td>admin</td>
+            </tr>
+            <tr>
+                <td><a href="{{ path('app_zone_local') }}">/zone/local</a></td>
+                <td><code>allow_if: request.getClientIp() in [...]</code></td>
+                <td>anyone on localhost — no role</td>
+            </tr>
+            <tr>
+                <td><a href="{{ path('app_zone_api') }}">/zone/api</a></td>
+                <td><code>methods: [POST], roles: [ROLE_MANAGER]</code></td>
+                <td>GET open to all; POST needs a manager</td>
+            </tr>
+            <tr>
+                <td><a href="{{ path('app_zone_secure') }}">/zone/secure</a></td>
+                <td><code>requires_channel: https, roles: [ROLE_USER]</code></td>
+                <td>redirected to HTTPS first, then any user</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p class="muted">
+        <code>requires_channel</code> is the odd one out: it is about the transport and not about
+        who is asking, so it corrects rather than refuses. The component's channel listener answers
+        it ahead of the rule listener, and the firewall's own is taken out of the chain — one rule,
+        one redirect.
+    </p>
+
+    <p class="muted">
+        A denial here throws the component's <code>AccessDeniedException</code>. The firewall
+        catches it through the shared <code>AccessDeniedExceptionInterface</code>: an anonymous
+        visitor is redirected to the login page, a signed-in but forbidden one gets a 403.
+    </p>
+{% endblock %}

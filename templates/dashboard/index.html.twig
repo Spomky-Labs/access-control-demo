@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+    <h1>Dashboard</h1>
+    <p>
+        You reached this page because the <code>#[AccessPolicy('ROLE_USER')]</code> on
+        <code>DashboardController</code> granted access. Every signed-in account holds
+        <code>ROLE_USER</code>, directly or through the role hierarchy.
+    </p>
+    <p>Signed in as <strong>{{ app.user.userIdentifier }}</strong>.</p>
+{% endblock %}

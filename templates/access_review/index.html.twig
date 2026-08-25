@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Permissions{% endblock %}
+
+{% block body %}
+    <h1>Your permissions</h1>
+    <p>
+        Computed in code by the <code>AccessInspector</code> service, which calls
+        <code>AccessControlManager::decide()</code> directly — no <code>#[AccessPolicy]</code>
+        attribute involved. Each cell shows the verdict and the voter's reason.
+    </p>
+    <table>
+        <thead><tr><th>Document</th><th>VIEW</th><th>EDIT</th></tr></thead>
+        <tbody>
+            {% for row in rows %}
+                <tr>
+                    <td>#{{ row.document.id }} · {{ row.document.title }} <span class="muted">({{ row.document.owner }})</span></td>
+                    <td>{{ row.view.granted ? '✅' : '⛔' }} <span class="muted">{{ row.view.reason }}</span></td>
+                    <td>{{ row.edit.granted ? '✅' : '⛔' }} <span class="muted">{{ row.edit.reason }}</span></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="muted">
+        The same verdicts back Twig's <code>is_granted('VIEW', document)</code> and Security's
+        <code>isGranted()</code>: with the component enabled, both are bridged to this very
+        decision manager.
+    </p>
+
+    <h2>Both Twig functions, one decision</h2>
+    <p>
+        Registering the bundle splits Security's Twig extension in two:
+        <code>is_granted()</code> and <code>is_granted_for_user()</code> are <em>taken over</em> by
+        the component, while <code>access_decision()</code> and the
+        <code>impersonation_*</code> helpers stay <em>delegated</em> to Security
+        (through <code>SecurityExtensionWithoutAuthorization</code>). They still agree, because
+        Security's decision manager is itself the component's adapter — so the message below is
+        written by <code>DocumentVoter</code>, reached through Security's own object.
+    </p>
+    <table>
+        <thead><tr><th>Document</th><th><code>is_granted('VIEW', doc)</code></th><th><code>access_decision('VIEW', doc)</code></th></tr></thead>
+        <tbody>
+            {% for row in rows %}
+                {% set decision = access_decision('VIEW', row.document) %}
+                <tr>
+                    <td>#{{ row.document.id }} · {{ row.document.title }}</td>
+                    <td>{{ is_granted('VIEW', row.document) ? '✅ granted' : '⛔ denied' }}</td>
+                    <td>
+                        {{ decision.isGranted ? '✅ granted' : '⛔ denied' }}
+                        <span class="muted">{{ decision.getMessage() }}</span>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Two vocabularies, one verdict</h2>
+    <p>
+        <code>access_decision()</code> could not be taken over: it hands back an object of
+        Security's, whose shape is not this component's — a boolean <code>isGranted</code> against
+        a three-valued <code>decision</code>, <code>getMessage()</code> against <code>reason</code>.
+        A function whose return type depended on which bundles are installed would be a trap, so the
+        component publishes the same question under a name of its own,
+        <code>access_control_decision()</code>. Both are available at once, which is what lets a
+        template move one page at a time rather than in a single commit.
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Document</th>
+                <th><code>access_decision('VIEW', doc)</code><br><span class="muted">Security's shape</span></th>
+                <th><code>access_control_decision('VIEW', doc)</code><br><span class="muted">the component's shape</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+                {% set legacy = access_decision('VIEW', row.document) %}
+                {% set native = access_control_decision('VIEW', row.document) %}
+                <tr>
+                    <td>#{{ row.document.id }} · {{ row.document.title }}</td>
+                    <td>
+                        <code>.isGranted</code> = {{ legacy.isGranted ? 'true' : 'false' }}<br>
+                        <code>.getMessage()</code> = <span class="muted">{{ legacy.getMessage() ?: '—' }}</span><br>
+                        <code>.strategy</code> = <code>{{ legacy.strategy ?: '—' }}</code>
+                    </td>
+                    <td>
+                        <code>.decision</code> = <code>{{ native.decision.value }}</code><br>
+                        <code>.isGranted()</code> = {{ native.isGranted ? 'true' : 'false' }}<br>
+                        <code>.reason</code> = <span class="muted">{{ native.reason ?: '—' }}</span>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="muted">
+        <code>.strategy</code> is worth a second look. Security fills it with the word the
+        application wrote, and installing the bundle used to leave it empty — a template that
+        displayed <em>affirmative</em> quietly displayed nothing. The bridge now reports the word
+        back, and it is still Security's: this app names the very same algorithm
+        <code>permit_overrides</code> under <code>access_control.default_strategy</code>, and a
+        template written against Security keeps reading its own vocabulary.
+    </p>
+    <p class="muted">
+        The three-valued <code>decision</code> is the truth of the component's object;
+        <code>isGranted()</code> only says whether access was granted, so an abstention answers
+        <code>false</code> exactly as a refusal does.
+    </p>
+
+    {% if is_granted('ROLE_ADMIN') %}
+        <p>
+            <a href="{{ path('app_permissions_preview') }}">Access preview →</a> — decide for
+            <em>other</em> accounts in a template with <code>is_granted_for_user()</code>.
+        </p>
+    {% endif %}
+{% endblock %}

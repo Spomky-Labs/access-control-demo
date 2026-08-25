@@ -1,0 +1,99 @@
+# AccessControl integration.
+#
+# Two packages, installed separately rather than through the combined
+# `spomky-labs/access-control-framework` metapackage that replaces them both:
+#
+#   * spomky-labs/access-control-lib    — namespace `AccessControl\`, the library itself,
+#                                         which needs no Symfony framework at all;
+#   * spomky-labs/access-control-bundle — namespace `AccessControl\Bundle\`, the wiring
+#                                         into the full-stack framework.
+#
+# Both are installed from Packagist, at `1.0.*@dev` — the branch is published, there is no
+# tagged release yet, and the constraint becomes `^1.0` the day there is one. Nothing in this
+# application depends on a development branch of Symfony any more either: every symfony/*
+# package is an ordinary 8.1 release.
+#
+# Registering AccessControlBundle (see config/bundles.php) is the opt-in: from there
+# on the AccessControl library decides. There is no `enabled` flag, and the config
+# lives under its own root key — not under `framework`.
+#
+# With SecurityBundle present, everything is wired automatically:
+#   * the *requester* is the current security token (the logged-in user);
+#   * the role hierarchy declared under `security.role_hierarchy` is reused;
+#   * `security.access_control`, `#[IsGranted]` and Twig `is_granted()` are all
+#     routed through this component instead of the legacy Security voters.
+access_control:
+    # How the voters' opinions are combined when a policy names no strategy.
+    #   permit_overrides  -> affirmative : one GRANT is enough            (default)
+    #   deny_overrides    -> unanimous   : a single DENY refuses
+    #   majority          -> consensus   : the side with more votes wins
+    #   first_applicable  -> priority    : the first non-abstaining voter decides
+    default_strategy: permit_overrides
+
+    # The prefix an attribute must carry to be understood as a role.
+    role_prefix: ROLE_
+
+    # Two options are deliberately NOT declared here, because this app has Security:
+    #
+    #   role_hierarchy       -> declared under `security.role_hierarchy`; the bridge points this
+    #                           component at it. Declaring it on both keys raises at build time
+    #                           (it would be built and then never consulted). The component's own
+    #                           key is for applications with no Security — see the standalone
+    #                           kernel in tests/Standalone/StandaloneKernel.php.
+    #   allow_if_all_abstain -> declared under `security.access_decision_manager`; the bridge
+    #                           shares it, and naming a different value here is a contradiction
+    #                           rather than a precedence.
+    #
+    # The same holds for `default_strategy` above: it is honoured because security.yaml is silent
+    # on `access_decision_manager.strategy`. Naming two different algorithms raises.
+
+    # Declarative, path-based access rules — the config-driven counterpart to the
+    # #[AccessPolicy] attributes used by the controllers. Options are exactly those of
+    # `security.access_control`, so a rule reads the same with or without a firewall.
+    #
+    # A matcher (path/methods/host/ips/...) selects the requests a rule covers; the
+    # policy (roles/allow_if) says what those requests must satisfy. Rules are tried in
+    # order and the first match wins. A denial throws the component's AccessDeniedException,
+    # which the firewall turns into a login redirect (anonymous) or a 403 (forbidden).
+    #
+    # The whole /zone area below is guarded here — ZoneController carries no attribute.
+    rules:
+        # Any authenticated account (ROLE_USER, directly or via the hierarchy).
+        - { path: '^/zone/members', roles: [ROLE_USER] }
+
+        # Managers and, through the role hierarchy, admins.
+        - { path: '^/zone/staff', roles: [ROLE_MANAGER] }
+
+        # Admins only.
+        - { path: '^/zone/admin', roles: [ROLE_ADMIN] }
+
+        # No role at all: an expression reading the request grants by network origin.
+        # The `request` variable is the current request, exactly like a controller subject.
+        - { path: '^/zone/local', allow_if: "request.getClientIp() in ['127.0.0.1', '::1']" }
+
+        # The matcher also carries a method: only writes are guarded, GET stays open.
+        - { path: '^/zone/api', methods: [POST], roles: [ROLE_MANAGER] }
+
+        # Not an access rule at all: `requires_channel` is about the transport, and the component's
+        # ChannelListener answers it on kernel.request at priority 9 — ahead of the rule listener at
+        # 7, so an insecure request is redirected before anything is decided about it. With Security
+        # the firewall's own channel listener is taken out of the chain, so one rule redirects once.
+        #
+        # A role on the same rule still applies, once the request comes back over HTTPS.
+        - { path: '^/zone/secure', requires_channel: https, roles: [ROLE_USER] }
+
+# Two things this file cannot show, because they only appear where this app differs from itself:
+#
+#   * Workflow guards. `guard:` used to need SecurityBundle — Workflow types its GuardListener on
+#     four of its services and refuses to compile without them. Registering this bundle in an
+#     application that has no Security swaps that listener for one of the component's, and the same
+#     expressions keep deciding. Here Security is present, so the listener is deliberately left
+#     alone: those guards already reach this component through the adapter on
+#     `security.access.decision_manager`. Both shapes are measured against one another in
+#     tests/Standalone/WorkflowKernel.php.
+#
+#   * The exit status of a denial on the console. It is 113 and is not settable from a policy: an
+#     exit status is read by the scripts around a command, not by the rule that refused it — the
+#     same reason no HTTP status is on the attribute. The way out is the console's own, a listener
+#     on ConsoleEvents::ERROR, which can branch on the command or on who was asking as no setting
+#     would have allowed. See src/Console/DeniedExitCodeListener.php.

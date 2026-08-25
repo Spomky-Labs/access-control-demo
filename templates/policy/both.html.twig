@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Both policies{% endblock %}
+
+{% block body %}
+    <h1>A manager <em>and</em> the owner</h1>
+    <p>
+        <code>{{ document.title }}</code> is owned by <code>{{ document.owner }}</code>, and you
+        passed both halves of the <code>#[All]</code>: the role and the <code>EDIT</code> attribute
+        on this document.
+    </p>
+    <p class="muted">
+        <code>All</code> stops at the first refusal and hands back that policy's own outcome, so the
+        403 says which half failed rather than that "something" did.
+    </p>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Switching users{% endblock %}
+
+{% block body %}
+    <h1>Switching users</h1>
+    <p>
+        Impersonation is Security's, and stays Security's. What changes with the bundle registered
+        is who answers the <em>authorization</em> half: <code>is_granted()</code> and
+        <code>is_granted_for_user()</code> become the component's, while
+        <code>impersonation_path()</code>, <code>impersonation_exit_path()</code> and
+        <code>access_decision()</code> keep being delegated —
+        <code>SecurityExtensionWithoutAuthorization</code> is the seam.
+    </p>
+
+    {% if is_granted('ROLE_ALLOWED_TO_SWITCH') %}
+        <h2>Switch in</h2>
+        <p>
+            <a href="{{ impersonation_path('user') }}">Impersonate “user”</a> ·
+            <a href="{{ impersonation_path('manager') }}">Impersonate “manager”</a>
+        </p>
+        <p class="muted">
+            Both links are built by <code>impersonation_path()</code> for the current route.
+            <code>ROLE_ALLOWED_TO_SWITCH</code> is not held by anyone directly — the admin account
+            reaches it through the role hierarchy, which the component reads from
+            <code>security.role_hierarchy</code>.
+        </p>
+    {% elseif is_granted('IS_IMPERSONATOR') %}
+        <p class="flash flash-success">
+            You are impersonating <strong>{{ app.user.userIdentifier }}</strong>.
+            <a href="{{ impersonation_exit_path() }}">Stop impersonating</a>
+        </p>
+        <p class="muted">
+            While this lasts, <a href="{{ path('app_playground_impersonation') }}">the page guarded
+            by <code>IS_IMPERSONATOR</code></a> is reachable, and at no other time.
+        </p>
+    {% else %}
+        <p class="muted">
+            Sign in as <code>admin</code> to switch users from here: switching in takes
+            <code>ROLE_ALLOWED_TO_SWITCH</code>, which only the admin account reaches.
+        </p>
+    {% endif %}
+
+    <h2>Two kinds of "on behalf of"</h2>
+    <p class="muted">
+        Impersonation replaces the requester: while it lasts, the app sees the impersonated user,
+        and <code>IS_IMPERSONATOR</code> is what betrays the substitution.
+        <a href="{{ path('app_playground_on_behalf') }}">Delegation</a> is the other shape and the
+        component's own — the requester is not replaced, an actor is named behind it, and a rule can
+        ask about either one. Neither needs a firewall in the second case.
+    </p>
+{% endblock %}

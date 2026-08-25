@@ -1,39 +1,56 @@
 security:
-    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+    # In-memory users are enough to explore AccessControl. Passwords are stored in
+    # plain text here on purpose: the point of this app is authorization, not hashing.
     password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        Symfony\Component\Security\Core\User\InMemoryUser: 'plaintext'
 
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+    # Three demo accounts with increasing privileges. Log in with identical
+    # username/password pairs: user/user, manager/manager, admin/admin.
     providers:
-        users_in_memory: { memory: null }
+        users_in_memory:
+            memory:
+                users:
+                    user:    { password: 'user',    roles: ['ROLE_USER'] }
+                    manager: { password: 'manager', roles: ['ROLE_MANAGER'] }
+                    admin:   { password: 'admin',   roles: ['ROLE_ADMIN'] }
+
+    # Reused as-is by the AccessControl RoleVoter: holding ROLE_ADMIN implies
+    # ROLE_MANAGER and ROLE_USER, holding ROLE_MANAGER implies ROLE_USER.
+    role_hierarchy:
+        ROLE_ADMIN: ['ROLE_MANAGER', 'ROLE_USER', 'ROLE_ALLOWED_TO_SWITCH']
+        ROLE_MANAGER: ['ROLE_USER']
 
     firewalls:
         dev:
-            # Ensure dev tools and static assets are always allowed
-            pattern: ^/(_profiler|_wdt|assets|build)/
+            pattern: ^/(_(profiler|wdt)|assets|build)/
             security: false
         main:
             lazy: true
             provider: users_in_memory
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                default_target_path: app_dashboard
+                enable_csrf: true
+            logout:
+                path: app_logout
+                target: app_home
+            # Enables ?_switch_user=<username> impersonation (and ?_switch_user=_exit).
+            # Requires ROLE_ALLOWED_TO_SWITCH, which admin reaches via the role hierarchy.
+            switch_user: true
 
-            # Activate different ways to authenticate:
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
-    # Note: Only the *first* matching rule is applied
+    # Authorization here is driven by #[AccessPolicy] attributes on the controllers,
+    # so this list stays empty. It would work identically if enabled — with the
+    # component installed, these rules go through the very same decision manager:
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        # - { path: ^/dashboard, roles: ROLE_USER }
 
 when@test:
     security:
         password_hashers:
-            # Password hashers are resource-intensive by design to ensure security.
-            # In tests, it's safe to reduce their cost to improve performance.
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
-                cost: 4 # Lowest possible value for bcrypt
-                time_cost: 3 # Lowest possible value for argon
-                memory_cost: 10 # Lowest possible value for argon
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

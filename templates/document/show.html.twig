@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ document.title }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('app_documents') }}">← Back to documents</a></p>
+    <h1>{{ document.title }}</h1>
+    <p class="muted">Owned by <code>{{ document.owner }}</code></p>
+    <p>{{ document.body }}</p>
+    <p><a href="{{ path('app_document_edit', {id: document.id}) }}">Edit this document →</a></p>
+    <p>
+        <a href="{{ path('app_document_workflow', {id: document.id}) }}">Publication workflow →</a>
+        — the same voters, asked by <code>guard:</code> expressions instead of by an attribute.
+    </p>
+{% endblock %}

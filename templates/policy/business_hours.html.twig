@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Business hours{% endblock %}
+
+{% block body %}
+    <h1>Inside the window</h1>
+    <p>
+        You reached this page, so two things are true at once: it is between 9:00 and 18:00, and you
+        hold <code>ROLE_MANAGER</code> (directly or through the hierarchy).
+    </p>
+    <p class="muted">
+        Outside the window the handler refuses before it ever looks at the nested policy, so an
+        administrator is turned away with the same message a stranger gets. The clock is injected
+        into the handler rather than read from the access environment: an entry point fills the
+        environment with what it alone knows, and a policy that abstained on a missing key would
+        fail open.
+    </p>
+{% endblock %}

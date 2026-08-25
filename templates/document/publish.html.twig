@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Publish — {{ document.title }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('app_documents') }}">← Back to documents</a></p>
+    <h1>Publishing “{{ document.title }}”</h1>
+    <p class="muted">
+        Owned by <code>{{ document.owner }}</code>{% if document.locked %} · <strong>locked</strong>{% endif %}
+    </p>
+    <p class="flash flash-success">
+        Access granted under the <code>{{ strategy }}</code> strategy — publication would proceed.
+    </p>
+    {% if document.locked %}
+        <p>
+            This document is locked, yet publication was allowed because
+            <code>{{ strategy }}</code> lets the owner's grant override the compliance veto.
+            The <a href="{{ path('app_document_publish_strict', {id: document.id}) }}">deny_overrides
+            variant</a> refuses the very same request.
+        </p>
+    {% endif %}
+{% endblock %}

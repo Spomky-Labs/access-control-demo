@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AtLeastOneOf{% endblock %}
+
+{% block body %}
+    <h1>AtLeastOneOf</h1>
+    <p>
+        Reached because <code>#[AtLeastOneOf([AccessPolicy('ROLE_ADMIN'),
+        AccessPolicy('ROLE_MANAGER')])]</code> granted: you hold at least one of the two
+        roles. A plain <code>user</code> is refused with a <code>403</code>.
+    </p>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Combining algorithms{% endblock %}
+
+{% block body %}
+    <h1>One request, five algorithms</h1>
+    <p>
+        Every cell below is the same <code>AccessRequest</code> — <code>PUBLISH</code> on the same
+        document, by you — put to the same voters. The only thing that moves is the third argument
+        of <code>AccessControlManager::decide()</code>: the combining algorithm. A strategy is an
+        argument of the question, not a setting of the application.
+    </p>
+    <dl>
+        {% for name, description in strategies %}
+            <dt><code>{{ name }}</code></dt>
+            <dd class="muted">{{ description }}</dd>
+        {% endfor %}
+    </dl>
+    <p class="muted">
+        <code>two_keys</code> is this application's, <code>{{ custom }}</code>. It is a strategy for
+        no other reason than implementing <code>StrategyInterface</code>:
+        <code>access_control.strategy</code> is an autoconfigured tag, so it is reachable by name
+        wherever the four shipped ones are.
+    </p>
+
+    {% for row in rows %}
+        <h2>#{{ row.document.id }} · {{ row.document.title }}</h2>
+        <p class="muted">
+            Owned by <code>{{ row.document.owner }}</code>{% if row.document.locked %},
+            <strong>locked by compliance</strong>{% endif %}.
+        </p>
+
+        <table>
+            <thead><tr><th>Voter</th><th>Said</th><th>Reason</th></tr></thead>
+            <tbody>
+                {% for vote in row.votes %}
+                    <tr>
+                        <td><code>{{ vote.voter }}</code></td>
+                        <td><code>{{ vote.decision }}</code></td>
+                        <td class="muted">{{ vote.reason ?: '—' }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="3" class="muted">No voter supported this request.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <table>
+            <thead><tr><th>Algorithm</th><th>Verdict</th><th>Why</th></tr></thead>
+            <tbody>
+                {% for name, verdict in row.verdicts %}
+                    <tr>
+                        <td><code>{{ name }}</code></td>
+                        <td>{{ verdict.granted ? '✅' : '⛔' }} <code>{{ verdict.decision }}</code></td>
+                        <td class="muted">{{ verdict.reason }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+
+    <p class="muted">
+        A locked document owned by someone on the editorial board is the interesting one: the owner
+        grants, the board grants, compliance refuses. <code>permit_overrides</code> publishes it,
+        <code>deny_overrides</code> does not, and <code>two_keys</code> does not either — a refusal
+        is not outvoted there, which is the whole reason a second key was asked for.
+    </p>
+{% endblock %}

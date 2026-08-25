@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin — Reports{% endblock %}
+
+{% block body %}
+    <h1>Reports</h1>
+    <p>
+        This page stacks two policies: the class-level <code>ROLE_ADMIN</code> and a
+        method-level expression <code>is_fully_authenticated()</code>, evaluated by the
+        <code>ExpressionVoter</code>. Both must pass.
+    </p>
+    <p class="muted">
+        The expression only adds what the class does not already guarantee. Re-checking
+        <code>ROLE_ADMIN</code> inside it would run the role decision a second time —
+        visible in the AccessControl profiler panel as a duplicate entry.
+    </p>
+{% endblock %}

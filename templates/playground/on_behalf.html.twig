@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Acting on behalf of{% endblock %}
+
+{% block body %}
+    <h1>Acting on behalf of — the actor behind a requester</h1>
+    <p>
+        The component distinguishes <em>who access is asked for</em> (the requester) from
+        <em>who is really asking</em> (the actor), the way RFC&nbsp;8693 does. Two shapes carry it:
+        Security's <code>SwitchUserToken</code> (impersonation), and the component-native
+        <code>DelegatedRequesterInterface</code> — used here by <code>OnBehalfOfSession</code>,
+        with no firewall or <code>switch_user</code> involved.
+    </p>
+    <p>
+        Both rows below are decided <strong>programmatically</strong> for an explicit requester
+        (<code>AccessInspector::isGrantedFor()</code>), so nothing depends on who is logged in.
+        The agent behind the second row is an administrator, yet the session it drives still holds
+        only the customer's <code>ROLE_USER</code>.
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Scenario</th>
+                <th>Real actor</th>
+                {% for attribute, question in questions %}
+                    <th title="{{ question }}"><code>{{ attribute }}</code></th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+                <tr>
+                    <td>
+                        <strong>{{ row.title }}</strong><br>
+                        <span class="muted">{{ row.description }}</span>
+                    </td>
+                    <td>{% if row.actor %}<code>{{ row.actor }}</code>{% else %}<span class="muted">—</span>{% endif %}</td>
+                    {% for attribute, question in questions %}
+                        <td>{{ row.checks[attribute] ? '✓ granted' : '✗ denied' }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="muted">
+        Read the last column together with the first: <code>IS_ACTING_ADMIN</code> is granted by an
+        app voter that reads the <em>actor's</em> roles via <code>Actor::of()</code>, so a break-glass
+        action can be allowed on “an admin is really behind this” without ever widening the customer's
+        own <code>ROLE_ADMIN</code>, which stays denied.
+    </p>
+{% endblock %}

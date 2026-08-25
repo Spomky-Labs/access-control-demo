@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Policy shapes{% endblock %}
+
+{% block body %}
+    <h1>Policy shapes</h1>
+    <p>
+        Everywhere else in this application a route carries a plain <code>#[AccessPolicy]</code>. A
+        policy is an interface, though, and these three pages are what else it can be. All three are
+        read by the <em>evaluator</em> rather than by a voter: a composite decides how to combine its
+        children before any voter is asked anything.
+    </p>
+
+    <div class="card">
+        <h3><a href="{{ path('app_policy_business_hours') }}">A composite the component does not ship</a></h3>
+        <p class="muted">
+            <code>App\Security\Attribute\DuringBusinessHours</code> and its
+            <code>DuringBusinessHoursHandler</code>. Implementing
+            <code>CompositeAccessPolicyInterface</code> makes the nested policies visible to the
+            evaluator; implementing <code>AccessPolicyHandlerInterface</code> is the whole
+            registration, <code>access_control.policy_handler</code> being autoconfigured.
+        </p>
+        <p class="muted">
+            It <strong>refuses</strong> outside its window where <code>#[When]</code> would abstain,
+            which is the difference worth having: a window nobody passes outside of cannot step
+            aside and let another policy grant instead.
+        </p>
+        <p class="needs muted"><code>/policies/business-hours</code> · needs a manager, between 9:00 and 18:00</p>
+    </div>
+
+    <div class="card">
+        <h3><a href="{{ path('app_policy_both', {id: 2}) }}">Every nested policy, not just one</a></h3>
+        <p class="muted">
+            <code>#[All]</code>: a manager <em>and</em> the owner. Neither implies the other — an
+            admin reaches <code>ROLE_MANAGER</code> through the hierarchy without owning anything,
+            and an owner need not be a manager. The first refusal is handed back as it stands, so the
+            403 carries the message of the half that failed.
+        </p>
+        <p class="needs muted">
+            <a href="{{ path('app_policy_both', {id: 2}) }}">#2</a> (owned by <code>manager</code>) ·
+            <a href="{{ path('app_policy_both', {id: 1}) }}">#1</a> (owned by <code>user</code>) ·
+            the mirror image is <a href="{{ path('app_playground_either') }}"><code>#[AtLeastOneOf]</code></a>,
+            where either half is enough
+        </p>
+    </div>
+
+    <div class="card">
+        <h3><a href="{{ path('app_policy_abstain') }}">When everybody abstains</a></h3>
+        <p class="muted">
+            No voter claims <code>{{ unclaimed }}</code>, so every one of them abstains and the
+            manager has to settle it — a manager never hands an abstention back. This application
+            leaves the default alone, which is to refuse, and a policy may say otherwise for its own
+            request.
+        </p>
+        <p class="needs muted">
+            <a href="{{ path('app_policy_abstain') }}">Silence is consent</a> ·
+            <a href="{{ path('app_policy_abstain_strict') }}">silence is refusal</a> — the same
+            attribute, one <code>allowIfAllAbstain</code> apart
+        </p>
+    </div>
+
+    <p class="muted">
+        Two more shapes live elsewhere, because they are about something other than combining
+        policies: <a href="{{ path('app_policy_entry_point') }}">the access environment</a> is under
+        Requesters, and <a href="{{ path('app_policy_audit') }}">the audit trail</a> under Reasons.
+    </p>
+{% endblock %}

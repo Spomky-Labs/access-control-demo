@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manage — {{ document.title }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('app_documents') }}">← Back to documents</a></p>
+    <h1>Managing “{{ document.title }}”</h1>
+    <p class="muted">Owned by <code>{{ document.owner }}</code></p>
+    <p>
+        The expression granted access: you are fully authenticated and either an
+        administrator, or the owner acting with <code>ROLE_MANAGER</code>.
+    </p>
+{% endblock %}

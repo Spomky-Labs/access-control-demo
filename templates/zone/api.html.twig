@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Zone — method-scoped rule{% endblock %}
+
+{% block body %}
+    <p class="muted"><a href="{{ path('app_zone') }}">← Zone</a></p>
+    <h1>Method-scoped rule</h1>
+    <p>
+        This <code>GET</code> matched <strong>no</strong> rule, so it is open to everyone —
+        including anonymous visitors. The rule
+        <code>{ path: '^/zone/api', methods: [POST], roles: [ROLE_MANAGER] }</code>
+        only covers writes: the matcher is what keeps the guard off <code>GET</code>.
+    </p>
+    <p>Send a <code>POST</code> to the same URL to trigger the <code>ROLE_MANAGER</code> policy:</p>
+    <form method="post">
+        <button type="submit">POST /zone/api</button>
+    </form>
+    <p class="muted">
+        As a manager or admin the POST is accepted; as a plain user it is refused with a 403;
+        anonymously it redirects to the login page.
+    </p>
+{% endblock %}

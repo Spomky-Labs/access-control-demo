@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Access environment{% endblock %}
+
+{% block body %}
+    <h1>The circumstances of the call</h1>
+    <p>
+        <code>{{ attribute }}</code> is about none of the usual three. Not who is asking, not what
+        they are asking about, not what they want to do — but where the call came in. That fourth
+        category is what <code>AccessEnvironment</code> carries, and it is filled by whoever let the
+        call in rather than by whoever made it.
+    </p>
+    <p>
+        You are reading this, so the listener that let the request through put the HTTP request in
+        the environment and <code>EntryPointVoter</code> found a loopback address. The policy also
+        added <code>area</code> of its own, merged over what the listener filled in — and since the
+        environment reaches the voter and nobody else, its reason is the only place that key shows:
+    </p>
+    <p><code id="granted-reason">{{ granted ?: '—' }}</code></p>
+
+    <h2>The same voter, asked with nothing in hand</h2>
+    <p class="muted">
+        Asked programmatically a moment ago, no entry point had filled anything, so the voter
+        abstained rather than granting — a rule that fails open on a missing key would be a rule
+        any caller could switch off by omission.
+    </p>
+    <table>
+        <thead><tr><th>Verdict</th><th>Reason</th></tr></thead>
+        <tbody>
+            <tr>
+                <td><code>{{ programmatic.decision.value }}</code></td>
+                <td class="muted">{{ programmatic.reason ?: '—' }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="muted">
+        The console fills the same environment with the command, its input and its output instead —
+        <code>php bin/console app:entry-point:check</code> puts the very same attribute to the very
+        same voter and is granted for a different reason.
+    </p>
+{% endblock %}
