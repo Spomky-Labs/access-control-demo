@@ -1,5 +1,7 @@
 # Access Control — demo application
 
+[![CI](https://github.com/Spomky-Labs/access-control-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/Spomky-Labs/access-control-demo/actions/workflows/ci.yml)
+
 A working Symfony application built to exercise
 [`spomky-labs/access-control-lib`](https://github.com/Spomky-Labs/access-control-lib) and
 [`spomky-labs/access-control-bundle`](https://github.com/Spomky-Labs/access-control-bundle) —
